@@ -5,11 +5,13 @@ public class GameBoard {
 	private int width;
 	private int height;
 	private Block[][] blocks;
+	private boolean GameOver;
 	
 	public GameBoard(int width, int height) {
 		this.width = width;
 		this.height = height;
 		blocks = new Block[height][width];
+		GameOver = false;
 	}
 	
 	/**
@@ -87,6 +89,16 @@ public class GameBoard {
 		
 		blocks[newRow][newCol] = blocks[row][col];
 		blocks[row][col] = null;
+		
+		if(block instanceof TargetBlock)
+		{
+			if(newCol == width-1)
+			{
+				GameOver = true;
+				System.out.println("Game Over");
+			}
+		}
+		
 		return true;
 	}
 	
@@ -120,5 +132,19 @@ public class GameBoard {
 			System.out.println();
 		}
 		System.out.println();
+	}
+	
+	public int getHeight()
+	{
+		return height;
+	}
+	
+	public int getWidth()
+	{
+		return width;
+	}
+	public boolean isGameOver()
+	{
+		return GameOver;
 	}
 }
