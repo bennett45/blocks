@@ -16,17 +16,13 @@ import javax.swing.JOptionPane;
 import pt314.blocks.game.Block;
 import pt314.blocks.game.Direction;
 import pt314.blocks.game.GameBoard;
-import pt314.blocks.game.HorizontalBlock;
-import pt314.blocks.game.TargetBlock;
-import pt314.blocks.game.VerticalBlock;
+import pt314.blocks.game.PuzzleLoader;
+
 
 /**
  * Simple GUI test...
  */
 public class SimpleGUI extends JFrame implements ActionListener {
-
-	private static final int NUM_ROWS = 5;
-	private static final int NUM_COLS = 5;
 
 	private GameBoard board;
 	
@@ -48,7 +44,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		
 		initMenus();
 		
-		initBoard();
+		initBoard(3);
 		
 		pack();
 		setVisible(true);
@@ -68,7 +64,9 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		newGameMenuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(SimpleGUI.this, "Coming soon...");
+				getContentPane().removeAll();
+				getContentPane().revalidate();
+				initBoard(1);
 			}
 		});
 		gameMenu.add(newGameMenuItem);
@@ -96,13 +94,17 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		setJMenuBar(menuBar);
 	}
 	
-	private void initBoard() {
-		board = new GameBoard(NUM_COLS, NUM_ROWS);
-		buttonGrid = new GridButton[NUM_ROWS][NUM_COLS];
+	private void initBoard(int level) {
+		try {
+			board = PuzzleLoader.ImportBoard(level);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		buttonGrid = new GridButton[board.getHeight()][board.getWidth()];
 		
-		setLayout(new GridLayout(NUM_ROWS, NUM_COLS));
-		for (int row = 0; row < NUM_ROWS; row++) {
-			for (int col = 0; col < NUM_COLS; col++) {
+		setLayout(new GridLayout(board.getHeight(), board.getWidth()));
+		for (int row = 0; row < board.getHeight(); row++) {
+			for (int col = 0; col < board.getWidth(); col++) {
 				GridButton cell = new GridButton(row, col);
 				cell.setPreferredSize(new Dimension(64, 64));
 				cell.addActionListener(this);
@@ -111,32 +113,20 @@ public class SimpleGUI extends JFrame implements ActionListener {
 				add(cell);
 			}
 		}
-		
-		// add some blocks for testing...
-		board.placeBlockAt(new HorizontalBlock(), 0, 0);
-		board.placeBlockAt(new HorizontalBlock(), 4, 4);
-		board.placeBlockAt(new VerticalBlock(), 1, 3);
-		board.placeBlockAt(new VerticalBlock(), 3, 1);
-		board.placeBlockAt(new TargetBlock(), 2, 2);
-		
 		updateUI();
 	}
 
 	// Update display based on the state of the board...
 	// TODO: make this more efficient
 	private void updateUI() {
-		for (int row = 0; row < NUM_ROWS; row++) {
-			for (int col = 0; col < NUM_COLS; col++) {
+		for (int row = 0; row < board.getHeight(); row++) {
+			for (int col = 0; col < board.getWidth(); col++) {
 				Block block = board.getBlockAt(row, col);
 				JButton cell = buttonGrid[row][col];
 				if (block == null)
-					cell.setBackground(Color.LIGHT_GRAY);
-				else if (block instanceof TargetBlock)
-					cell.setBackground(Color.YELLOW);
-				else if (block instanceof HorizontalBlock)
-					cell.setBackground(Color.BLUE);
-				else if (block instanceof VerticalBlock)
-					cell.setBackground(Color.RED);
+					cell.setBackground(Color.BLACK);
+				else 
+					cell.setBackground(block.getColor());
 			}
 		}
 	}
@@ -211,7 +201,14 @@ public class SimpleGUI extends JFrame implements ActionListener {
 		else {
 			selectedBlock = null;
 			updateUI();
+			if(board.isGameOver())
+				DisplayGameOver();
 		}
+	}
+
+	private void DisplayGameOver() 
+	{
+		JOptionPane.showMessageDialog(SimpleGUI.this, "Game Over");
 	}
 
 	/**
